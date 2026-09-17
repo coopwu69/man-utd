@@ -35,9 +35,8 @@ const themeInitScript = `
   (function() {
     try {
       var theme = localStorage.getItem('mu-theme');
-      if (theme === 'dark' || theme === 'light') {
-        document.documentElement.dataset.theme = theme;
-      }
+      document.documentElement.dataset.theme =
+        theme === 'dark' || theme === 'light' ? theme : 'dark';
     } catch (e) {}
   })();
 `;
@@ -50,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      data-theme="light"
+      data-theme="dark"
       className={`${ibmPlex.variable} ${trirong.variable} ${sarabun.variable} antialiased`}
       suppressHydrationWarning
     >

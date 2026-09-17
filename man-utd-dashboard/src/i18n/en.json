@@ -3,6 +3,26 @@
     "title": "Manchester United",
     "subtitle": "Season-by-Season Analytics"
   },
+  "nav": {
+    "overview": "Overview",
+    "managers": "Managers"
+  },
+  "filter": {
+    "from": "From",
+    "to": "To"
+  },
+  "managers": {
+    "pick": "Select managers to compare",
+    "chartTitle": "Points per match & win rate",
+    "tableTitle": "Manager comparison",
+    "colManager": "Manager",
+    "colPeriod": "Period",
+    "perMp": "MP",
+    "ptsPerMp": "Pts/MP",
+    "winPct": "Win %",
+    "interim": "interim",
+    "noData": "Select at least one manager"
+  },
   "competitions": {
     "all": "All",
     "premier-league": "Premier League",
@@ -15,6 +35,8 @@
     "gfPerMp": "Goals for / MP",
     "gaPerMp": "Goals against / MP",
     "xgPerMp": "xG / MP",
+    "xgaPerMp": "xGA / MP",
+    "sotaPerMp": "SoT against / MP",
     "winRate": "Win rate",
     "csRate": "Clean sheet rate",
     "vsPrevious": "vs previous season",
@@ -37,6 +59,7 @@
     "refLine": "2.0 baseline"
   },
   "table": {
+    "title": "Season-by-season stats",
     "season": "Season",
     "competition": "Competition",
     "mp": "MP",
@@ -63,6 +86,18 @@
     "matches": "matches",
     "close": "Close",
     "noData": "No match-level data for this selection",
+    "loading": "Loading…",
+    "noStatData": "No detailed stats for this selection",
+    "tabs": {
+      "scores": "Scores & Fixtures",
+      "shooting": "Shooting",
+      "keeper": "Goalkeeping",
+      "misc": "Miscellaneous"
+    },
+    "side": {
+      "for": "Man Utd",
+      "against": "Opponents"
+    },
     "poss": "Poss",
     "form": "Form",
     "att": "Att",
@@ -83,5 +118,89 @@
   },
   "rank": {
     "champion": "Champions"
+  },
+  "nav": {
+    "overview": "Overview",
+    "keepers": "Keepers",
+    "squad": "Squad",
+    "compare": "Compare"
+  },
+  "keepers": {
+    "title": "Goalkeeping",
+    "kpi": {
+      "saves": "Saves",
+      "savePct": "Save %",
+      "cs": "Clean sheets",
+      "goalsPrevented": "PSxG prevented"
+    },
+    "chart": {
+      "bySeason": "Goalkeeping by season",
+      "perGk": "Per goalkeeper",
+      "goalsPrevented": "Goals prevented (PSxG)"
+    },
+    "table": {
+      "title": "Goalkeeping by season",
+      "season": "Season",
+      "player": "Player",
+      "mp": "MP",
+      "ga": "GA",
+      "sota": "SoTA",
+      "saves": "Saves",
+      "savePct": "Save %",
+      "cs": "CS"
+    },
+    "sota": "SoTA",
+    "saves": "Saves",
+    "ga": "GA",
+    "psxg": "PSxG",
+    "goalsPrevented": "Goals prevented",
+    "savePct": "Save %",
+    "goalsPreventedNote": "PSxG data is legacy-sourced; fbref no longer publishes PSxG."
+  },
+  "squad": {
+    "title": "Squad",
+    "kpi": {
+      "weeklyBill": "Weekly wage bill",
+      "yearlyBill": "Yearly wage bill",
+      "playerCount": "Players",
+      "avgAge": "Avg age"
+    },
+    "table": {
+      "title": "Squad wages",
+      "name": "Name",
+      "pos": "Pos",
+      "age": "Age",
+      "weeklyGross": "Weekly gross",
+      "yearlyGross": "Yearly gross",
+      "expires": "Expires",
+      "status": "Status"
+    },
+    "chart": {
+      "ageTitle": "Age bands",
+      "expiryTitle": "Contracts by expiry year"
+    },
+    "dataNote": "Squad data manually maintained, updated",
+    "pos": {
+      "G": "GK",
+      "D": "DF",
+      "M": "MF",
+      "F": "FW"
+    }
+  },
+  "compare": {
+    "title": "Compare seasons",
+    "seasonA": "Season A",
+    "seasonB": "Season B",
+    "chartTitle": "Cumulative points",
+    "statTitle": "After {matchweek} matches",
+    "w": "W",
+    "d": "D",
+    "l": "L",
+    "winRate": "Win %",
+    "drawRate": "Draw %",
+    "lossRate": "Loss %",
+    "points": "Pts",
+    "matchweek": "Matchweek",
+    "note": "Premier League matches played only"
   }
 }

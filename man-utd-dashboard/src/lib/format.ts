@@ -17,3 +17,12 @@ export function pct(x: number | null, dec = 0): string {
 export function dash<T>(v: T | null): T | '—' {
   return v == null ? '—' : v;
 }
+
+export function gbp(n: number | null, dec = 0): string {
+  if (n == null || Number.isNaN(n)) return '—';
+  return new Intl.NumberFormat('en-GB', {
+    style: 'currency',
+    currency: 'GBP',
+    maximumFractionDigits: dec,
+  }).format(n);
+}

@@ -5,8 +5,8 @@
 > **Project Type:** Football Performance Analytics Dashboard
 > **Primary Language:** Thai
 > **Secondary Language:** English
-> **Default Theme:** Light
-> **Alternative Theme:** Dark
+> **Default Theme:** Dark
+> **Alternative Theme:** Light
 > **Design Direction:** Clean / Modern + Premium Dark
 > **Primary Subject:** Manchester United on-pitch performance, statistics, matches, players and tactical data
 
@@ -52,7 +52,7 @@ Decoration
 
 ### 2. Clean by Default
 
-Light Mode เป็นประสบการณ์หลัก
+Dark Mode เป็นประสบการณ์หลัก — Light Mode ยังคง clean เหมือนเดิมเมื่อสลับ
 
 UI ต้องมี:
 

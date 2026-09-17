@@ -76,8 +76,30 @@ export function KpiCards({ rows }: { rows: SeasonRow[] }) {
     });
   }
 
+  if (latest?.xga != null) {
+    kpis.push({
+      key: 'xgaPerMp',
+      label: t('kpi.xgaPerMp'),
+      value: (r) => perMatch(r.xga, r.mp),
+      format: (n) => fmt(n, 2),
+      deltaFormat: (n) => signed(n, 2),
+      invert: true,
+    });
+  }
+
+  if (latest?.sota != null) {
+    kpis.push({
+      key: 'sotaPerMp',
+      label: t('kpi.sotaPerMp'),
+      value: (r) => perMatch(r.sota, r.mp),
+      format: (n) => fmt(n, 2),
+      deltaFormat: (n) => signed(n, 2),
+      invert: true,
+    });
+  }
+
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-8">
       {kpis.map((kpi) => {
         const current = latest ? kpi.value(latest) : null;
         const prev = previous ? kpi.value(previous) : null;

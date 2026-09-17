@@ -27,15 +27,16 @@ function apply(theme: Theme) {
   }
 }
 
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'light';
-  const saved = localStorage.getItem(THEME_KEY) as Theme | null;
-  return saved === 'dark' || saved === 'light' ? saved : 'light';
-}
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>('dark');
   const mountedRef = useRef(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY) as Theme | null;
+    if (saved === 'dark' || saved === 'light') {
+      queueMicrotask(() => setThemeState(saved));
+    }
+  }, []);
 
   useEffect(() => {
     apply(theme);

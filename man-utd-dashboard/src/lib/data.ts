@@ -1,12 +1,14 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { cache } from 'react';
-import type { SeasonRow, MatchRow } from './types';
+import type { SeasonRow, MatchRow, KeepersData, SquadData } from './types';
 
 const DATA_DIR = join(process.cwd(), 'data');
 const JSON_PATH = join(DATA_DIR, 'man-utd-seasons.json');
 const CSV_PATH = join(DATA_DIR, 'man-utd-seasons.csv');
 const MATCHES_PATH = join(DATA_DIR, 'man-utd-matches.json');
+const KEEPERS_PATH = join(DATA_DIR, 'man-utd-keepers.json');
+const SQUAD_PATH = join(DATA_DIR, 'man-utd-squad.json');
 
 const NUMERIC_FIELDS: ReadonlyArray<keyof SeasonRow> = [
   'mp',
@@ -21,6 +23,7 @@ const NUMERIC_FIELDS: ReadonlyArray<keyof SeasonRow> = [
   'xg',
   'xga',
   'xgd',
+  'sota',
   'cs',
   'attendance',
 ];
@@ -49,6 +52,7 @@ function normalizeHeader(raw: string): keyof SeasonRow | 'ignore' {
     xg: 'xg',
     xga: 'xga',
     xgd: 'xgd',
+    sota: 'sota',
     cs: 'cs',
     attendance: 'attendance',
     topteamscorer: 'topScorer',
@@ -123,6 +127,7 @@ function parseSeasonsFromCsv(text: string): SeasonRow[] {
       xg: null,
       xga: null,
       xgd: null,
+      sota: null,
       cs: null,
       attendance: null,
       topScorer: null,
@@ -168,4 +173,20 @@ export const getMatches = cache((): MatchRow[] => {
   if (!existsSync(MATCHES_PATH)) return [];
   const text = readFileSync(MATCHES_PATH, 'utf-8');
   return JSON.parse(text) as MatchRow[];
+});
+
+export const getKeepers = cache((): KeepersData => {
+  if (!existsSync(KEEPERS_PATH)) {
+    return { matchLog: [], perGkSeason: [], psxg: [], psxgPerGk: [] };
+  }
+  const text = readFileSync(KEEPERS_PATH, 'utf-8');
+  return JSON.parse(text) as KeepersData;
+});
+
+export const getSquad = cache((): SquadData => {
+  if (!existsSync(SQUAD_PATH)) {
+    return { updated: null, players: [] };
+  }
+  const text = readFileSync(SQUAD_PATH, 'utf-8');
+  return JSON.parse(text) as SquadData;
 });

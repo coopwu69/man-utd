@@ -53,6 +53,7 @@ function emptySeasonRow(season: string): SeasonRow {
     xg: null,
     xga: null,
     xgd: null,
+    sota: null,
     cs: null,
     attendance: null,
     topScorer: null,
@@ -152,17 +153,40 @@ export function rowsForGroup(
     .sort((a, b) => a.season.localeCompare(b.season));
 }
 
+const FBREF_COMP_CANON: Record<string, string> = {
+  'Premier League': 'Premier League',
+  'FA Cup': 'FA Cup',
+  'League Cup': 'EFL Cup',
+  'EFL Cup': 'EFL Cup',
+  'Champions Lg': 'Champions League',
+  'Europa Lg': 'Europa League',
+  'UEFA Cup': 'Europa League',
+  'Conference Lg': 'Conference League',
+  'FA Community Shield': 'Community Shield',
+  'Community Shield': 'Community Shield',
+  'Super Cup': 'UEFA Super Cup',
+  'Club World Cup': 'Club World Cup',
+  'Int Champions Cup': 'International Champions Cup',
+  'Friendly': 'Friendly',
+};
+
+export function canonicalComp(comp: string): string {
+  return FBREF_COMP_CANON[comp] ?? comp;
+}
+
+export function compInGroup(comp: string, group: CompGroup): boolean {
+  const c = canonicalComp(comp);
+  if (group === 'all') return c !== 'Friendly';
+  if (group === 'europe') return EUROPE_COMPS.includes(c);
+  return c === COMP_MAP[group];
+}
+
 export function matchesForSeason(
   matches: MatchRow[],
   season: string,
   group: CompGroup,
 ): MatchRow[] {
-  const inGroup = (m: MatchRow): boolean => {
-    if (group === 'all') return m.competition !== 'Friendly';
-    if (group === 'europe') return EUROPE_COMPS.includes(m.competition);
-    return m.competition === COMP_MAP[group];
-  };
   return matches
-    .filter((m) => m.season === season && inGroup(m))
+    .filter((m) => m.season === season && compInGroup(m.competition, group))
     .sort((a, b) => a.date.localeCompare(b.date));
 }

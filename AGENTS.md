@@ -22,6 +22,25 @@ re-run `python -X utf8 scripts/build_data.py` in `man-utd-dashboard/`, then copy
 - Playwright `filename` results land in its own workspace root — check
   `man-utd-dashboard/` subdirs if a file seems missing from cwd.
 - URL pattern: `https://fbref.com/en/squads/19538871/{SEASON}/matchlogs/all_comps/schedule/Manchester-United-Scores-and-Fixtures-All-Competitions`
+- BULK ALTERNATIVE (used for stat logs): after navigating to ANY fbref page once,
+  `fetch(url, {credentials:'include'})` inside `browser_evaluate` works same-origin
+  and returns full HTML (Cloudflare cookie already set). Loop seasons × types in a
+  single evaluate with ~700ms delay; parse with `DOMParser`, select
+  `table#matchlogs_for` + `table#matchlogs_against`. Much faster than navigating.
+
+## Stat matchlogs (shooting / keeper / misc)
+- Raw files: `data/raw/matchlog-YYYY-YYYY-{shooting,keeper,misc}.json` —
+  `{tables: [{label, columns, rows}], metadata:{sourceURL}}` (structured JSON,
+  NOT markdown like schedule files). `label` = "For Manchester United" or
+  "Against Manchester United".
+- URL pattern: same as schedule but `/all_comps/{shooting|keeper|misc}/` and
+  page slug `Manchester-United-Match-Logs-All-Competitions`.
+- `scripts/build_matchlogs.py` → merged `data/man-utd-matchlogs.json` +
+  per-season `public/data/matchlogs-YYYY-YYYY.json` (lazy-fetched by MatchLog UI).
+- `build_matches.py` glob intentionally matches only `matchlog-\d{4}-\d{4}.json`
+  so stat files are not parsed as schedules.
+- Old seasons have empty cells for many stat columns (fbref coverage) — rows are
+  kept verbatim; UI renders blanks as "—".
 
 ## Coverage limits (fbref's, not bugs)
 - Domestic cups (FA Cup, League/EFL Cup) + Charity/Community Shield only exist on

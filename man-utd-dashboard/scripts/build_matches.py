@@ -16,7 +16,8 @@ OUT = Path(__file__).resolve().parent.parent / "data" / "man-utd-matches.json"
 
 SEASONS = sorted(
     p.stem.replace("matchlog-", "")
-    for p in RAW.glob("matchlog-*.json")
+    for p in RAW.glob("matchlog-????-????.json")
+    if re.fullmatch(r"matchlog-\d{4}-\d{4}", p.stem)
 )
 
 COMP_MAP = {

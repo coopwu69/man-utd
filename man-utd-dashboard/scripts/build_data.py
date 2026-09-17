@@ -17,10 +17,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
-SEASONS = [f"{y}-{y+1}" for y in range(1992, 2026)]  # 1992-1993 .. 2025-2026
+SEASONS = []
 
 COMP_MAP = {
     "premier league": "Premier League",
+    "first division": "First Division",
+    "second division": "Second Division",
+    "test matches": "Test Matches",
     "champions lg": "Champions League",
     "champions league": "Champions League",
     "europa lg": "Europa League",
@@ -40,9 +43,9 @@ COMP_MAP = {
     "international champions cup": "International Champions Cup",
 }
 COMP_ORDER = [
-    "Premier League", "FA Cup", "EFL Cup", "Champions League", "Europa League",
-    "Conference League", "Club World Cup", "UEFA Super Cup", "Community Shield",
-    "International Champions Cup",
+    "First Division", "Second Division", "Premier League", "FA Cup", "EFL Cup",
+    "Champions League", "Europa League", "Conference League", "Club World Cup",
+    "UEFA Super Cup", "Community Shield", "International Champions Cup",
 ]
 
 
@@ -58,11 +61,20 @@ def canon_comp(raw: str) -> str:
 
 
 def num(cell: str):
-    cell = strip_md(cell).replace(",", "").replace("+", "")
+    cell = strip_md(cell).replace(",", "").replace("+", "").replace("%", "")
     if cell in ("", "-", "—"):
         return None
     m = re.match(r"^-?\d+(\.\d+)?", cell)
     return float(m.group(0)) if m else None
+
+
+def score(cell: str):
+    """'1 (6)' -> (1, 6); '3' -> (3, None)."""
+    cell = strip_md(cell)
+    m = re.match(r"(\d+)(?:\s*\((\d+)\))?", cell)
+    if not m:
+        return None, None
+    return int(m.group(1)), int(m.group(2)) if m.group(2) else None
 
 
 def parse_tables(md: str):
@@ -91,11 +103,43 @@ def load_md(path: Path) -> str:
     return json.loads(path.read_text(encoding="utf-8"))["markdown"]
 
 
+def load_seasons():
+    md = load_md(RAW / "history.json")
+    hist = set()
+    sections = {
+        "Domestic Leagues Results",
+        "International Cup Results",
+        "Domestic Cup Results",
+        "International Super Cup Results",
+        "Domestic Super Cup Results",
+    }
+    for heading, header, rows in parse_tables(md):
+        if heading not in sections or not header or header[0] != "Season":
+            continue
+        for r in rows:
+            if len(r) < 1:
+                continue
+            s = strip_md(r[0])
+            if re.match(r"^\d{4}-\d{4}$", s):
+                hist.add(s)
+    match = set(
+        p.stem.replace("matchlog-", "")
+        for p in RAW.glob("matchlog-*.json")
+        if re.match(r"^matchlog-\d{4}-\d{4}$", p.stem)
+    )
+    return sorted(hist | match)
+
+
+SEASONS = load_seasons()
+
+
 # ---------- 1. matchlog aggregation: season x comp -> stats ----------
 def matchlog_stats():
     agg = {}  # (season, comp) -> dict
     for season in SEASONS:
         p = RAW / f"matchlog-{season}.json"
+        if not p.exists():
+            continue
         md = load_md(p)
         found = False
         for heading, header, rows in parse_tables(md):
@@ -150,6 +194,7 @@ def history_rows():
             out[(season, comp)] = {
                 "season": season,
                 "competition": comp,
+                "squad": s("Squad") or None,
                 "rank": s("LgRank") or None,
                 "mp": int(g("MP") or 0),
                 "w": int(g("W") or 0),
@@ -170,7 +215,7 @@ def history_rows():
 # ---------- 3. understat xG (Premier League only) ----------
 def understat_xg():
     xg = {}  # season -> (xg_for, xg_against, matches)
-    for yr in range(2014, 2026):
+    for yr in range(2014, 2027):
         p = RAW / f"understat-{yr}.json"
         if not p.exists():
             continue
@@ -189,10 +234,178 @@ def understat_xg():
     return xg
 
 
+# ---------- 4. fbref opponent shooting (SoTA, Premier League only) ----------
+def shooting_against():
+    out = {}  # season -> shots on target against
+    for yr in range(2014, 2027):
+        season = f"{yr}-{yr+1}"
+        p = RAW / f"shooting-against-{season}.json"
+        if not p.exists():
+            continue
+        for heading, header, rows in parse_tables(load_md(p)):
+            if "Shooting Against" not in heading or "SoT" not in header:
+                continue
+            idx = {name: k for k, name in enumerate(header)}
+            for r in rows:
+                if "Manchester Utd" not in strip_md(r[0]):
+                    continue
+                out[season] = num(r[idx["SoT"]])
+    return out
+
+
+def build_keepers():
+    match_log = []
+    per_gk_season = []
+    psxg = []
+    psxg_per_gk = []
+
+    for p in sorted(RAW.glob("keeper-*.json")):
+        if not re.match(r"^keeper-\d{4}-\d{4}$", p.stem):
+            continue
+        season = p.stem.replace("keeper-", "")
+        md = json.loads(p.read_text(encoding="utf-8"))["markdown"]
+        for heading, header, rows in parse_tables(md):
+            if not header or header[0] != "Date":
+                continue
+            for r in rows:
+                if len(r) < len(header):
+                    continue
+                gfv, gfp = score(r[7])
+                gav, gap = score(r[8])
+                match_log.append({
+                    "season": season,
+                    "date": strip_md(r[0]) or None,
+                    "time": strip_md(r[1]) or None,
+                    "comp": canon_comp(r[2]),
+                    "round": strip_md(r[3]) or None,
+                    "venue": strip_md(r[5]) or None,
+                    "result": strip_md(r[6]) or None,
+                    "gf": gfv,
+                    "ga": gav,
+                    "gfPens": gfp,
+                    "gaPens": gap,
+                    "opponent": strip_md(r[9]) or None,
+                    "sota": num(r[10]),
+                    "saves": num(r[12]),
+                    "savePct": num(r[13]),
+                    "cs": num(r[14]),
+                    "pkatt": num(r[15]),
+                    "pka": num(r[16]),
+                    "pksv": num(r[17]),
+                    "pkm": num(r[18]),
+                })
+
+    for p in sorted(RAW.glob("keeper-squad-*.json")):
+        season = p.stem.replace("keeper-squad-", "")
+        md = json.loads(p.read_text(encoding="utf-8"))["markdown"]
+        for heading, header, rows in parse_tables(md):
+            if not header or header[0] != "Player":
+                continue
+            for r in rows:
+                if len(r) < 23:
+                    continue
+                per_gk_season.append({
+                    "season": season,
+                    "player": strip_md(r[0]) or None,
+                    "nation": strip_md(r[1]) or None,
+                    "age": num(r[3]),
+                    "mp": num(r[4]),
+                    "starts": num(r[5]),
+                    "min": num(r[6]),
+                    "nineties": num(r[7]),
+                    "ga": num(r[8]),
+                    "ga90": num(r[9]),
+                    "sota": num(r[10]),
+                    "saves": num(r[11]),
+                    "savePct": num(r[12]),
+                    "w": num(r[13]),
+                    "d": num(r[14]),
+                    "l": num(r[15]),
+                    "cs": num(r[16]),
+                    "csPct": num(r[17]),
+                    "pkatt": num(r[18]),
+                    "pka": num(r[19]),
+                    "pksv": num(r[20]),
+                    "pkm": num(r[21]),
+                    "pkSavePct": num(r[22]),
+                })
+
+    for p in sorted(RAW.glob("keeperadv-*.json")):
+        season = p.stem.replace("keeperadv-", "")
+        d = json.loads(p.read_text(encoding="utf-8"))
+        for heading, header, rows in parse_tables(d["markdown_squads"]):
+            if not header or header[0] != "Squad":
+                continue
+            for r in rows:
+                if len(r) < len(header):
+                    continue
+                if strip_md(r[0]) != "Manchester Utd":
+                    continue
+                psxg.append({
+                    "season": season,
+                    "nineties": num(r[2]),
+                    "ga": num(r[3]),
+                    "pka": num(r[4]),
+                    "psxg": num(r[8]),
+                    "psxgPerSot": num(r[9]),
+                    "psxgPlusMinus": num(r[10]),
+                    "psxgPer90": num(r[11]),
+                    "opa": num(r[25]),
+                    "opaPer90": num(r[26]),
+                    "avgDistance": num(r[27]),
+                })
+        for heading, header, rows in parse_tables(d["markdown_players"]):
+            if not header or header[0] != "Rk":
+                continue
+            for r in rows:
+                if len(r) < len(header):
+                    continue
+                if strip_md(r[4]) != "Manchester Utd":
+                    continue
+                psxg_per_gk.append({
+                    "season": season,
+                    "player": strip_md(r[1]) or None,
+                    "nation": strip_md(r[2]) or None,
+                    "age": num(r[5]),
+                    "nineties": num(r[7]),
+                    "ga": num(r[8]),
+                    "psxg": num(r[13]),
+                    "psxgPerSot": num(r[14]),
+                    "psxgPlusMinus": num(r[15]),
+                })
+
+    legacy_path = ROOT / "data" / "man-utd-psxg-legacy.json"
+    if legacy_path.exists():
+        legacy = json.loads(legacy_path.read_text(encoding="utf-8"))
+        legacy_seasons = {s["season"]: s for s in legacy.get("seasons", [])}
+        for row in psxg:
+            seed = legacy_seasons.get(row["season"])
+            if not seed:
+                continue
+            row["psxg"] = seed["psxg"]
+            row["ga"] = seed["ga"]
+            row["pka"] = seed["pka"]
+            row["psxgPlusMinus"] = round(
+                seed["psxg"] - (row["ga"] - (row["pka"] or 0)), 1)
+            row["psxgSource"] = "legacy"
+
+        for entry in legacy.get("perGk", []):
+            psxg_per_gk.append(dict(entry))
+
+    return {
+        "matchLog": match_log,
+        "perGkSeason": per_gk_season,
+        "psxg": psxg,
+        "psxgPerGk": psxg_per_gk,
+    }
+
+
 def main():
     ml = matchlog_stats()
     hist = history_rows()
     xg = understat_xg()
+    sota = shooting_against()
+    keepers = build_keepers()
 
     keys = set(hist) | set(ml)
     rows = []
@@ -201,9 +414,10 @@ def main():
         h = hist.get((season, comp))
         a = ml.get((season, comp))
         if h is None:
-            h = dict(season=season, competition=comp, rank=None, mp=a["mp"], w=a["w"], d=a["d"],
-                     l=a["l"], gf=a["gf"], ga=a["ga"], gd=a["gf"] - a["ga"], pts=3 * a["w"] + a["d"],
-                     attendance=None, topScorer=None, goalkeeper=None, notes=None)
+            h = dict(season=season, competition=comp, squad=None, rank=None, mp=a["mp"], w=a["w"],
+                     d=a["d"], l=a["l"], gf=a["gf"], ga=a["ga"], gd=a["gf"] - a["ga"],
+                     pts=3 * a["w"] + a["d"], attendance=None, topScorer=None, goalkeeper=None,
+                     notes=None)
         elif a:
             # Match logs are match-level truth; fbref history occasionally
             # records shootout games differently. Prefer matchlog results.
@@ -221,6 +435,7 @@ def main():
             row["xg"], row["xga"], row["xgd"] = xf, xa, round(xf - xa, 1)
         else:
             row["xg"] = row["xga"] = row["xgd"] = None
+        row["sota"] = sota.get(season) if comp == "Premier League" else None
         rows.append(row)
 
     # All Competitions aggregate per season
@@ -237,10 +452,10 @@ def main():
         ga = sum(r["ga"] for r in comp_rows)
         cs_vals = [r["cs"] for r in comp_rows if r["cs"] is not None]
         pts = 3 * w + d
-        all_rows.append(dict(season=season, competition="All Competitions", rank=None,
-                             mp=mp, w=w, d=d, l=l, gf=gf, ga=ga, gd=gf - ga, pts=pts,
-                             ptsPerMp=round(pts / mp, 2) if mp else None,
-                             xg=None, xga=None, xgd=None,
+        all_rows.append(dict(season=season, competition="All Competitions", squad=None,
+                             rank=None, mp=mp, w=w, d=d, l=l, gf=gf, ga=ga, gd=gf - ga,
+                             pts=pts, ptsPerMp=round(pts / mp, 2) if mp else None,
+                             xg=None, xga=None, xgd=None, sota=None,
                              cs=sum(cs_vals) if len(cs_vals) == len(comp_rows) else (sum(cs_vals) if cs_vals else None),
                              attendance=None, topScorer=None, goalkeeper=None, notes=None))
     rows.extend(all_rows)
@@ -248,9 +463,9 @@ def main():
     rows.sort(key=lambda r: (r["season"], COMP_ORDER.index(r["competition"]) if r["competition"] in COMP_ORDER else 99))
 
     out_csv = ROOT / "data" / "man-utd-seasons.csv"
-    cols = ["season", "competition", "rank", "mp", "w", "d", "l", "gf", "ga", "gd",
-            "pts", "ptsPerMp", "xg", "xga", "xgd", "cs", "attendance", "topScorer",
-            "goalkeeper", "notes"]
+    cols = ["season", "competition", "squad", "rank", "mp", "w", "d", "l", "gf", "ga",
+            "gd", "pts", "ptsPerMp", "xg", "xga", "xgd", "sota", "cs", "attendance",
+            "topScorer", "goalkeeper", "notes"]
     with out_csv.open("w", newline="", encoding="utf-8") as f:
         wcsv = csv.DictWriter(f, fieldnames=cols)
         wcsv.writeheader()
@@ -260,7 +475,13 @@ def main():
     (ROOT / "data" / "man-utd-seasons.json").write_text(
         json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
 
+    (ROOT / "data" / "man-utd-keepers.json").write_text(
+        json.dumps(keepers, ensure_ascii=False, indent=1), encoding="utf-8")
+
     print(f"rows: {len(rows)}  seasons: {len(set(r['season'] for r in rows))}")
+    print(f"keepers: matchLog={len(keepers['matchLog'])}, "
+          f"perGkSeason={len(keepers['perGkSeason'])}, "
+          f"psxg={len(keepers['psxg'])}, psxgPerGk={len(keepers['psxgPerGk'])}")
     if mismatches:
         print("history vs matchlog mismatches:")
         for m in mismatches:

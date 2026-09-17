@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useMemo, Fragment } from 'react';
+import { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useI18n } from '@/i18n/I18nContext';
 import type { SeasonRow, MatchRow, CompGroup } from '@/lib/types';
 import { winRate, csRate } from '@/lib/stats';
 import { fmt, pct, signed, dash } from '@/lib/format';
-import { MatchLog } from './MatchLog';
+import { SeasonModal } from './SeasonModal';
 
 type SortKey =
   | 'season' | 'competition' | 'mp' | 'w' | 'd' | 'l'
@@ -113,8 +113,14 @@ export function SeasonTable({
   };
 
   return (
-    <div className="min-w-0 overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm dark:shadow-none">
-      <table className="w-full min-w-[1000px] border-collapse">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm dark:shadow-none">
+      <div className="border-b border-border px-4 py-3">
+        <h3 className="font-display text-lg font-semibold text-primary">
+          {t('table.title')}
+        </h3>
+      </div>
+      <div className="max-h-[70vh] overflow-auto">
+        <table className="w-full min-w-[1000px] border-collapse">
         <thead className="sticky top-0 z-10 bg-surface-elevated">
           <tr>
             {columns.map(col => (
@@ -133,37 +139,31 @@ export function SeasonTable({
         </thead>
         <tbody>
           {sortedRows.map((r, idx) => (
-            <Fragment key={`${r.season}-${r.competition}-${idx}`}>
-              <tr
-                onClick={() => onSelect?.(r.season)}
-                className={`border-b border-border transition-colors hover:bg-bg-secondary ${
-                  onSelect ? 'cursor-pointer' : ''
-                } ${selectedSeason === r.season ? 'bg-brand-soft' : ''}`}
-              >
-                {columns.map(col => (
-                  <td key={col.key} className={`px-3 py-3 text-sm ${col.align === 'left' ? 'text-left' : 'text-right'}`}>
-                    <span className={col.key === 'season' ? '' : 'text-secondary'}>{renderCell(col, r)}</span>
-                  </td>
-                ))}
-              </tr>
-              {selectedSeason === r.season && (
-                <tr className="border-b border-border">
-                  <td colSpan={columns.length} className="bg-bg p-0">
-                    <div className="sticky left-0 max-w-[calc(100vw_-_4rem)] p-3">
-                      <MatchLog
-                        matches={matches}
-                        season={r.season}
-                        group={group}
-                        onClose={() => onSelect?.(r.season)}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </Fragment>
+            <tr
+              key={`${r.season}-${r.competition}-${idx}`}
+              onClick={() => onSelect?.(r.season)}
+              className={`border-b border-border transition-colors hover:bg-bg-secondary ${
+                onSelect ? 'cursor-pointer' : ''
+              } ${selectedSeason === r.season ? 'bg-brand-soft' : ''}`}
+            >
+              {columns.map(col => (
+                <td key={col.key} className={`px-3 py-3 text-sm ${col.align === 'left' ? 'text-left' : 'text-right'}`}>
+                  <span className={col.key === 'season' ? '' : 'text-secondary'}>{renderCell(col, r)}</span>
+                </td>
+              ))}
+            </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+      </div>
+      {selectedSeason && (
+        <SeasonModal
+          season={selectedSeason}
+          group={group}
+          matches={matches}
+          onClose={() => onSelect?.(selectedSeason)}
+        />
+      )}
     </div>
   );
 }

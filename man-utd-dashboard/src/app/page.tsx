@@ -13,7 +13,7 @@ export default async function Home() {
   const seasonRange = first && last ? `${seasonShort(first)} – ${seasonShort(last)}` : '';
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg">
+    <div className="hero-glow relative flex min-h-screen flex-col bg-bg">
       <AppHeader seasonRange={seasonRange} />
       <Dashboard rows={rows} matches={matches} />
     </div>
