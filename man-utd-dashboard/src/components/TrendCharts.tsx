@@ -69,7 +69,7 @@ export function TrendCharts({ rows }: { rows: SeasonRow[] }) {
             const dataKey = entry.dataKey as string | undefined;
             let text = '—';
             if (typeof value === 'number' && !Number.isNaN(value)) {
-              text = ['winRate', 'csRate'].includes(dataKey ?? '') ? pct(value, 1) : fmt(value, 2);
+              text = ['winRate', 'csRate'].includes(dataKey ?? '') ? pct(value, 2) : fmt(value, 2);
             }
             const color = entry.color ?? 'var(--text-muted)';
             return (

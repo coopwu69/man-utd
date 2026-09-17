@@ -3,10 +3,6 @@
     "title": "Manchester United",
     "subtitle": "สถิติทีมรายฤดูกาล"
   },
-  "nav": {
-    "overview": "ภาพรวม",
-    "managers": "ผู้จัดการ"
-  },
   "filter": {
     "from": "จาก",
     "to": "ถึง"

@@ -3,7 +3,7 @@ export function fmt(n: number | null, dec = 2): string {
   return n.toFixed(dec);
 }
 
-export function signed(n: number | null, dec = 1): string {
+export function signed(n: number | null, dec = 2): string {
   if (n == null || Number.isNaN(n)) return '—';
   const s = n.toFixed(dec);
   return n > 0 ? `+${s}` : s;

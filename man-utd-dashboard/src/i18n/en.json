@@ -3,10 +3,6 @@
     "title": "Manchester United",
     "subtitle": "Season-by-Season Analytics"
   },
-  "nav": {
-    "overview": "Overview",
-    "managers": "Managers"
-  },
   "filter": {
     "from": "From",
     "to": "To"

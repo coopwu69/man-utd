@@ -61,13 +61,13 @@ export function ManagersClient({ matches }: { matches: MatchRow[] }) {
         {fmt(perMp(ptsOf(s), s.mp), 2)}
       </td>
       <td className="px-3 py-2.5 text-right text-sm text-secondary">
-        {pct(winPct(s), 1)}
+        {pct(winPct(s), 2)}
       </td>
       <td className="px-3 py-2.5 text-right text-sm text-secondary">
         {fmt(perMp(s.gf, s.mp))} / {fmt(perMp(s.ga, s.mp))}
       </td>
       <td className="px-3 py-2.5 text-right text-sm text-secondary">
-        {pct(csPct(s), 1)}
+        {pct(csPct(s), 2)}
       </td>
       <td className="px-3 py-2.5 text-right text-sm text-secondary">
         {s.xg != null ? fmt(perMp(s.xg, s.mp)) : '—'}

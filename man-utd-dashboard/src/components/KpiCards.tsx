@@ -55,14 +55,14 @@ export function KpiCards({ rows }: { rows: SeasonRow[] }) {
       label: t('kpi.winRate'),
       value: winRate,
       format: pct,
-      deltaFormat: (n) => pct(n, 1),
+      deltaFormat: (n) => pct(n, 2),
     },
     {
       key: 'csRate',
       label: t('kpi.csRate'),
       value: csRate,
       format: pct,
-      deltaFormat: (n) => pct(n, 1),
+      deltaFormat: (n) => pct(n, 2),
     },
   ];
 

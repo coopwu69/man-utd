@@ -53,3 +53,6 @@ re-run `python -X utf8 scripts/build_data.py` in `man-utd-dashboard/`, then copy
 - Console is cp1252 — use `python -X utf8` when printing scraped text.
 - History markdown bolds title-winning ranks (`**1st**`) — strip_md removes `*`.
 - UEFA Cup is canonicalized to "Europa League" (same competition, renamed).
+
+## Display rules
+- **ทศนิยม 2 ตำแหน่งเท่านั้น** — all displayed decimals (per-match stats, xG, %, deltas) use exactly 2 decimal places; rounding is fine. Default `dec = 2` in `src/lib/format.ts`. Integers stay integers.

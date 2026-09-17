@@ -64,8 +64,8 @@ export function SeasonTable({
       { key: 'xga', label: t('table.xga'), align: 'right', sortValue: numeric(r => r.xga) },
       { key: 'xgd', label: t('table.xgd'), align: 'right', sortValue: numeric(r => r.xgd) },
       { key: 'cs', label: t('table.cs'), align: 'right', sortValue: numeric(r => r.cs) },
-      { key: 'winRate', label: t('table.winRate'), align: 'right', sortValue: numeric(r => winRate(r)), render: r => pct(winRate(r), 1) },
-      { key: 'csRate', label: t('table.csRate'), align: 'right', sortValue: numeric(r => csRate(r)), render: r => pct(csRate(r), 1) },
+      { key: 'winRate', label: t('table.winRate'), align: 'right', sortValue: numeric(r => winRate(r)), render: r => pct(winRate(r), 2) },
+      { key: 'csRate', label: t('table.csRate'), align: 'right', sortValue: numeric(r => csRate(r)), render: r => pct(csRate(r), 2) },
       { key: 'topScorer', label: t('table.topScorer'), align: 'left', sortValue: text(r => r.topScorer), render: r => <span className="block truncate max-w-[140px]" title={r.topScorer ?? undefined}>{dash(r.topScorer)}</span> },
       { key: 'goalkeeper', label: t('table.goalkeeper'), align: 'left', sortValue: text(r => r.goalkeeper), render: r => <span className="block truncate max-w-[140px]" title={r.goalkeeper ?? undefined}>{dash(r.goalkeeper)}</span> },
       { key: 'notes', label: t('table.notes'), align: 'left', sortValue: text(r => r.notes), render: r => <span className="block truncate max-w-[160px]" title={r.notes ?? undefined}>{dash(r.notes)}</span> },
@@ -100,9 +100,9 @@ export function SeasonTable({
       );
       case 'competition': return <span className="text-secondary">{dash(r.competition)}</span>;
       case 'gd': return <span>{signed(r.gd, 0)}</span>;
-      case 'xgd': return <span>{signed(r.xgd, 1)}</span>;
+      case 'xgd': return <span>{signed(r.xgd, 2)}</span>;
       case 'ptsPerMp': return <span>{fmt(r.ptsPerMp, 2)}</span>;
-      case 'xg': case 'xga': return <span>{fmt(r[col.key], 1)}</span>;
+      case 'xg': case 'xga': return <span>{fmt(r[col.key], 2)}</span>;
       default: {
         const raw = (r as unknown as Record<string, unknown>)[col.key];
         if (typeof raw === 'number') return <span>{fmt(raw, 0)}</span>;
