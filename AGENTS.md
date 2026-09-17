@@ -42,6 +42,20 @@ re-run `python -X utf8 scripts/build_data.py` in `man-utd-dashboard/`, then copy
 - Old seasons have empty cells for many stat columns (fbref coverage) — rows are
   kept verbatim; UI renders blanks as "—".
 
+## New datasets (2026-09)
+- `data/raw/keeper-YYYY.json` — team keeper matchlog all comps (SoTA/saves/CS/PK), 2014-15+
+- `data/raw/keeper-squad-YYYY.json` — stats_keeper_combined per-GK season totals, all comps
+- `data/raw/keeperadv-YYYY.json` — PL league keepersadv; PSxG columns EMPTY (see below)
+- `data/man-utd-keepers.json` — built: matchLog + perGkSeason + psxg + psxgPerGk
+- `data/man-utd-squad.json` — HAND-MAINTAINED wages/contracts (from user's sheet). Edit JSON, don't regenerate.
+- `data/man-utd-psxg-legacy.json` — PSxG seed from old Google Sheet. goalsPrevented = psxg - (ga - pka), verified 9/9 vs their chart.
+- New pages: /keepers /squad /compare (+ /managers from parallel session)
+
+## fbref removed PSxG site-wide
+keeper_adv tables exist but PSxG/PSxG+/- sweeper/passing cells are blank in DOM — Opta
+feed pulled ~2025. Season PSxG comes from legacy JSON only (2017-18+, PL only).
+Per-match PSxG not available anywhere post-removal — don't promise it.
+
 ## Coverage limits (fbref's, not bugs)
 - Domestic cups (FA Cup, League/EFL Cup) + Charity/Community Shield only exist on
   fbref from ~2014-15 (partially) / 2016-17 (full). Older seasons = league + Europe only.
