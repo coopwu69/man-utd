@@ -1,0 +1,87 @@
+{
+  "app": {
+    "title": "Manchester United",
+    "subtitle": "สถิติทีมรายฤดูกาล"
+  },
+  "competitions": {
+    "all": "ทุกรายการ",
+    "premier-league": "พรีเมียร์ลีก",
+    "fa-cup": "เอฟเอคัพ",
+    "efl-cup": "อีเอฟแอลคัพ",
+    "europe": "ยุโรป"
+  },
+  "kpi": {
+    "ptsPerMp": "แต้มต่อนัด",
+    "gfPerMp": "ประตูได้/นัด",
+    "gaPerMp": "ประตูเสีย/นัด",
+    "xgPerMp": "xG",
+    "winRate": "อัตราชนะ",
+    "csRate": "อัตราคลีนชีต",
+    "vsPrevious": "เทียบฤดูกาลก่อน",
+    "vsAverage": "เทียบค่าเฉลี่ย",
+    "avg": "เฉลี่ย",
+    "previous": "ฤดูกาลก่อน"
+  },
+  "charts": {
+    "attack": "เกมรุก",
+    "defense": "เกมรับ",
+    "pointsTrend": "แนวโน้มแต้ม",
+    "rates": "อัตราชนะและคลีนชีต",
+    "gfPerMp": "ได้ต่อนัด",
+    "gaPerMp": "เสียต่อนัด",
+    "xg": "xG",
+    "xga": "xGA",
+    "ptsPerMp": "แต้ม/นัด",
+    "winRate": "% ชนะ",
+    "csRate": "% คลีนชีต",
+    "refLine": "เกณฑ์ 2.0"
+  },
+  "table": {
+    "season": "ฤดูกาล",
+    "competition": "รายการ",
+    "mp": "แข่ง",
+    "w": "ชนะ",
+    "d": "เสมอ",
+    "l": "แพ้",
+    "gf": "ได้",
+    "ga": "เสีย",
+    "gd": "ผลต่าง",
+    "pts": "แต้ม",
+    "ptsPerMp": "แต้ม/นัด",
+    "xg": "xG",
+    "xga": "xGA",
+    "xgd": "xGD",
+    "cs": "คลีนชีต",
+    "winRate": "% ชนะ",
+    "csRate": "% คลีนชีต",
+    "topScorer": "ผู้ทำประตูสูงสุด",
+    "goalkeeper": "ผู้รักษาประตู",
+    "notes": "หมายเหตุ",
+    "hint": "กดที่แถวฤดูกาลเพื่อดูรายละเอียดแต่ละนัด"
+  },
+  "matchLog": {
+    "matches": "นัด",
+    "close": "ปิด",
+    "noData": "ไม่มีข้อมูลรายนัดสำหรับช่วงนี้",
+    "poss": "ครองบอล",
+    "form": "แผน",
+    "att": "ผู้ชม",
+    "venue": {
+      "Home": "เหย้า",
+      "Away": "เยือน",
+      "Neutral": "สนามกลาง"
+    }
+  },
+  "dataNote": "ข้อมูล: fbref.com · xG จาก Understat (เฉพาะพรีเมียร์ลีกตั้งแต่ 2014/15)",
+  "lang": {
+    "th": "ไทย",
+    "en": "EN"
+  },
+  "theme": {
+    "light": "สว่าง",
+    "dark": "มืด"
+  },
+  "rank": {
+    "champion": "แชมป์"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "app": {
+    "title": "Manchester United",
+    "subtitle": "Season-by-Season Analytics"
+  },
+  "competitions": {
+    "all": "All",
+    "premier-league": "Premier League",
+    "fa-cup": "FA Cup",
+    "efl-cup": "EFL Cup",
+    "europe": "Europe"
+  },
+  "kpi": {
+    "ptsPerMp": "Pts / MP",
+    "gfPerMp": "Goals for / MP",
+    "gaPerMp": "Goals against / MP",
+    "xgPerMp": "xG / MP",
+    "winRate": "Win rate",
+    "csRate": "Clean sheet rate",
+    "vsPrevious": "vs previous season",
+    "vsAverage": "vs average",
+    "avg": "avg",
+    "previous": "previous"
+  },
+  "charts": {
+    "attack": "Attack",
+    "defense": "Defense",
+    "pointsTrend": "Points trend",
+    "rates": "Win & clean sheet rates",
+    "gfPerMp": "GF per match",
+    "gaPerMp": "GA per match",
+    "xg": "xG",
+    "xga": "xGA",
+    "ptsPerMp": "Pts / MP",
+    "winRate": "Win %",
+    "csRate": "CS %",
+    "refLine": "2.0 baseline"
+  },
+  "table": {
+    "season": "Season",
+    "competition": "Competition",
+    "mp": "MP",
+    "w": "W",
+    "d": "D",
+    "l": "L",
+    "gf": "GF",
+    "ga": "GA",
+    "gd": "GD",
+    "pts": "Pts",
+    "ptsPerMp": "Pts/MP",
+    "xg": "xG",
+    "xga": "xGA",
+    "xgd": "xGD",
+    "cs": "CS",
+    "winRate": "Win %",
+    "csRate": "CS %",
+    "topScorer": "Top scorer",
+    "goalkeeper": "Goalkeeper",
+    "notes": "Notes",
+    "hint": "Click a season row to see match-by-match detail"
+  },
+  "matchLog": {
+    "matches": "matches",
+    "close": "Close",
+    "noData": "No match-level data for this selection",
+    "poss": "Poss",
+    "form": "Form",
+    "att": "Att",
+    "venue": {
+      "Home": "Home",
+      "Away": "Away",
+      "Neutral": "Neutral"
+    }
+  },
+  "dataNote": "Data: fbref.com · xG from Understat (Premier League only, from 2014/15)",
+  "lang": {
+    "th": "ไทย",
+    "en": "EN"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "rank": {
+    "champion": "Champions"
+  }
+}
