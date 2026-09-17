@@ -173,8 +173,59 @@ export interface SquadPlayer {
   onLoan: boolean;
 }
 
+export interface SquadSummary {
+  grossWeekly: number | null;
+  grossYearly: number | null;
+  grossTotalYearly: number | null;
+  avgTotalYearly: number | null;
+  players: number | null;
+  withSalary: number | null;
+}
+
+export interface SquadSeason {
+  summary: SquadSummary;
+  players: SquadPlayer[];
+}
+
 export interface SquadData {
   updated: string | null;
   source?: string | null;
   players: SquadPlayer[];
+  seasons?: Record<string, SquadSeason>;
+}
+
+export interface PlayerSeasonStats {
+  player: string;
+  nation: string | null;
+  pos: string;
+  age: number | null;
+  mp: number | null;
+  starts: number | null;
+  min: number | null;
+  nineties: number | null;
+  gls: number | null;
+  ast: number | null;
+  gPlusA: number | null;
+  gMinusPk: number | null;
+  pk: number | null;
+  pkatt: number | null;
+  crdY: number | null;
+  crdR: number | null;
+  sh: number | null;
+  sot: number | null;
+  sotPct: number | null;
+  gPerSh: number | null;
+  gPerSot: number | null;
+  minsPerStart: number | null;
+  ppm: number | null;
+}
+
+export interface PlayersSeason {
+  players: PlayerSeasonStats[];
+  sourceURL: string | null;
+}
+
+export interface PlayersData {
+  seasons: Record<string, PlayersSeason>;
+  latest: string;
 }

@@ -155,9 +155,11 @@
   },
   "squad": {
     "title": "Squad",
+    "season": "Season",
     "kpi": {
       "weeklyBill": "Weekly wage bill",
       "yearlyBill": "Yearly wage bill",
+      "totalBill": "Total wages / year",
       "playerCount": "Players",
       "avgAge": "Avg age"
     },
@@ -175,12 +177,38 @@
       "ageTitle": "Age bands",
       "expiryTitle": "Contracts by expiry year"
     },
-    "dataNote": "Squad data manually maintained, updated",
+    "dataNote": "Estimated salary data from",
+    "disclaimer": "Salary figures are Capology estimates, not official club figures.",
+    "status": {
+      "Active": "Active",
+      "Inactive": "Inactive",
+      "Loan": "Loan"
+    },
     "pos": {
       "G": "GK",
       "D": "DF",
       "M": "MF",
       "F": "FW"
+    },
+    "performance": {
+      "title": "Season Performance – {season}"
+    },
+    "col": {
+      "player": "Player",
+      "pos": "Pos",
+      "age": "Age",
+      "mp": "MP",
+      "starts": "Starts",
+      "min": "Min",
+      "gls": "Gls",
+      "ast": "Ast",
+      "gPlusA": "G+A",
+      "crdY": "CrdY",
+      "crdR": "CrdR",
+      "sh": "Sh",
+      "sot": "SoT",
+      "sotPct": "SoT%",
+      "gPerSh": "G/Sh"
     }
   },
   "compare": {

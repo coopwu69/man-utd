@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { cache } from 'react';
-import type { SeasonRow, MatchRow, KeepersData, SquadData } from './types';
+import type { SeasonRow, MatchRow, KeepersData, SquadData, PlayersData } from './types';
 
 const DATA_DIR = join(process.cwd(), 'data');
 const JSON_PATH = join(DATA_DIR, 'man-utd-seasons.json');
@@ -9,6 +9,7 @@ const CSV_PATH = join(DATA_DIR, 'man-utd-seasons.csv');
 const MATCHES_PATH = join(DATA_DIR, 'man-utd-matches.json');
 const KEEPERS_PATH = join(DATA_DIR, 'man-utd-keepers.json');
 const SQUAD_PATH = join(DATA_DIR, 'man-utd-squad.json');
+const PLAYERS_PATH = join(DATA_DIR, 'man-utd-players.json');
 
 const NUMERIC_FIELDS: ReadonlyArray<keyof SeasonRow> = [
   'mp',
@@ -189,4 +190,12 @@ export const getSquad = cache((): SquadData => {
   }
   const text = readFileSync(SQUAD_PATH, 'utf-8');
   return JSON.parse(text) as SquadData;
+});
+
+export const getPlayers = cache((): PlayersData => {
+  if (!existsSync(PLAYERS_PATH)) {
+    return { seasons: {}, latest: '' };
+  }
+  const text = readFileSync(PLAYERS_PATH, 'utf-8');
+  return JSON.parse(text) as PlayersData;
 });

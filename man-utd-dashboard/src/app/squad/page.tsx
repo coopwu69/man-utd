@@ -1,10 +1,11 @@
-import { getSquad, getSeasonRows } from '@/lib/data';
+import { getSquad, getSeasonRows, getPlayers } from '@/lib/data';
 import { seasonShort } from '@/lib/stats';
 import { AppHeader } from '@/components/AppHeader';
 import { SquadDashboard } from '@/components/SquadDashboard';
 
 export default async function SquadPage() {
   const squad = getSquad();
+  const players = getPlayers();
   const rows = getSeasonRows();
   const allRows = rows.filter((r) => r.competition === 'All Competitions');
   const sorted = [...allRows].sort((a, b) => a.season.localeCompare(b.season));
@@ -15,7 +16,7 @@ export default async function SquadPage() {
   return (
     <div className="hero-glow relative flex min-h-screen flex-col bg-bg">
       <AppHeader seasonRange={seasonRange} />
-      <SquadDashboard data={squad} />
+      <SquadDashboard data={squad} playersData={players} />
     </div>
   );
 }

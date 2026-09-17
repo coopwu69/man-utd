@@ -145,7 +145,10 @@ def main():
 
     # 2026-27 already parsed into the existing file; keep its richer schema
     cur = json.loads(OUT.read_text(encoding="utf8"))
-    seasons[cur["season"]] = {"summary": cur["summary"], "players": cur["players"]}
+    if "seasons" in cur:
+        seasons.update(cur["seasons"])
+    else:
+        seasons[cur["season"]] = {"summary": cur["summary"], "players": cur["players"]}
 
     out = {
         "club": "Manchester United",
@@ -157,6 +160,40 @@ def main():
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf8")
     for s, d in out["seasons"].items():
         print(s, len(d["players"]), "players", d["summary"]["grossYearly"])
+
+    # SquadData-shaped output for the dashboard (latest season at top level)
+    def to_squad_player(p: dict) -> dict:
+        pos = {"K": "G"}.get(p.get("pos") or "", p.get("pos"))
+        detail = p.get("posDetail")
+        sub = detail if detail and len(detail) <= 3 else None
+        exp = p.get("expires")
+        m = re.search(r"((?:19|20)\d{2})", exp or "")
+        year = m.group(1) if m else None
+        status = p.get("status")
+        return {
+            "name": p.get("name"), "pos": pos, "subPos": sub,
+            "age": p.get("age"), "status": status, "country": p.get("country"),
+            "weeklyGross": p.get("weeklyGross"), "yearlyGross": p.get("yearlyGross"),
+            "bonusYearly": p.get("bonusYearly"), "weeklyNet": None, "yearlyNet": None,
+            "signed": p.get("signed"), "expires": year,
+            "grossRemaining": p.get("grossRemaining"),
+            "onLoan": status == "Loan",
+        }
+
+    squad_seasons = {
+        s: {"summary": d["summary"], "players": [to_squad_player(p) for p in d["players"]]}
+        for s, d in out["seasons"].items()
+    }
+    latest = sorted(squad_seasons)[-1]
+    squad = {
+        "updated": latest,
+        "source": BASE + "/",
+        "players": squad_seasons[latest]["players"],
+        "seasons": squad_seasons,
+    }
+    (ROOT / "data" / "man-utd-squad.json").write_text(
+        json.dumps(squad, ensure_ascii=False, indent=1), encoding="utf8")
+    print("squad ->", latest, len(squad["players"]), "players")
 
 
 if __name__ == "__main__":

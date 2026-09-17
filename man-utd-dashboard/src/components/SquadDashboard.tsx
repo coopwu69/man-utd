@@ -14,11 +14,29 @@ import {
   TooltipContentProps,
 } from 'recharts';
 import { useI18n } from '@/i18n/I18nContext';
-import type { SquadData, SquadPlayer } from '@/lib/types';
+import type { SquadData, SquadPlayer, PlayersData, PlayerSeasonStats } from '@/lib/types';
 import { fmt, gbp, dash } from '@/lib/format';
 
 type SortKey = 'name' | 'pos' | 'age' | 'weeklyGross' | 'yearlyGross' | 'expires' | 'status';
 type SortDir = 'asc' | 'desc';
+
+type PerfSortKey =
+  | 'player'
+  | 'pos'
+  | 'age'
+  | 'mp'
+  | 'starts'
+  | 'min'
+  | 'gls'
+  | 'ast'
+  | 'gPlusA'
+  | 'crdY'
+  | 'crdR'
+  | 'sh'
+  | 'sot'
+  | 'sotPct'
+  | 'gPerSh';
+type PerfSortDir = 'asc' | 'desc';
 
 function sum(values: (number | null | undefined)[]): number {
   return values.reduce((acc: number, v) => acc + (v ?? 0), 0);
@@ -39,13 +57,47 @@ function posColor(pos: string) {
   }
 }
 
-export function SquadDashboard({ data }: { data: SquadData }) {
+function posKey(rawPos: string): string {
+  const first = rawPos.split(/[,/]/)[0]?.trim() ?? rawPos;
+  const map: Record<string, string> = { GK: 'G', DF: 'D', MF: 'M', FW: 'F', G: 'G', D: 'D', M: 'M', F: 'F' };
+  return map[first] ?? first;
+}
+
+function compareValues(a: unknown, b: unknown, dir: SortDir | PerfSortDir): number {
+  let cmp = 0;
+  if (a == null && b == null) {
+    cmp = 0;
+  } else if (a == null) {
+    cmp = -1;
+  } else if (b == null) {
+    cmp = 1;
+  } else if (typeof a === 'number' && typeof b === 'number') {
+    cmp = a - b;
+  } else {
+    cmp = String(a).localeCompare(String(b));
+  }
+  return dir === 'asc' ? cmp : -cmp;
+}
+
+export function SquadDashboard({ data, playersData }: { data: SquadData; playersData: PlayersData }) {
   const { t } = useI18n();
-  const { players, updated } = data;
+  const { updated, source } = data;
+  const seasonKeys = useMemo(() => Object.keys(data.seasons ?? {}).sort(), [data.seasons]);
+  const latestSeason = seasonKeys[seasonKeys.length - 1] ?? null;
+  const [season, setSeason] = useState<string | null>(null);
+  const activeSeason = season ?? latestSeason;
+  const seasonData = activeSeason ? data.seasons?.[activeSeason] : undefined;
+  const players = seasonData?.players ?? data.players;
+  const summary = seasonData?.summary;
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: 'weeklyGross', dir: 'desc' });
 
-  const weeklyBill = useMemo(() => sum(players.map((p) => p.weeklyGross)), [players]);
-  const yearlyBill = useMemo(() => sum(players.map((p) => p.yearlyGross)), [players]);
+  const playerSeason = playersData.latest;
+  const seasonPlayers = playersData.seasons[playerSeason]?.players ?? [];
+  const [perfSort, setPerfSort] = useState<{ key: PerfSortKey; dir: PerfSortDir }>({ key: 'gls', dir: 'desc' });
+
+  const weeklyBill = summary?.grossWeekly ?? sum(players.map((p) => p.weeklyGross));
+  const yearlyBill = summary?.grossYearly ?? sum(players.map((p) => p.yearlyGross));
+  const totalBill = summary?.grossTotalYearly ?? null;
   const avgAge = useMemo(() => {
     const withAge = players.filter((p) => p.age != null);
     if (withAge.length === 0) return null;
@@ -122,6 +174,66 @@ export function SquadDashboard({ data }: { data: SquadData }) {
     setSort((prev) => ({ key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc' }));
   };
 
+  const getPerfSortValue = (p: PlayerSeasonStats, key: PerfSortKey) => {
+    switch (key) {
+      case 'player':
+        return p.player;
+      case 'pos':
+        return p.pos;
+      case 'age':
+        return p.age ?? -Infinity;
+      case 'mp':
+        return p.mp ?? -Infinity;
+      case 'starts':
+        return p.starts ?? -Infinity;
+      case 'min':
+        return p.min ?? -Infinity;
+      case 'gls':
+        return p.gls ?? -Infinity;
+      case 'ast':
+        return p.ast ?? -Infinity;
+      case 'gPlusA':
+        return p.gPlusA ?? -Infinity;
+      case 'crdY':
+        return p.crdY ?? -Infinity;
+      case 'crdR':
+        return p.crdR ?? -Infinity;
+      case 'sh':
+        return p.sh ?? -Infinity;
+      case 'sot':
+        return p.sot ?? -Infinity;
+      case 'sotPct':
+        return p.sotPct ?? -Infinity;
+      case 'gPerSh':
+        return p.gPerSh ?? -Infinity;
+      default:
+        return '';
+    }
+  };
+
+  const sortedPerfRows = useMemo(() => {
+    const copy = [...seasonPlayers];
+    copy.sort((a, b) => {
+      const aVal = getPerfSortValue(a, perfSort.key);
+      const bVal = getPerfSortValue(b, perfSort.key);
+      let cmp = compareValues(aVal, bVal, perfSort.dir);
+      if (cmp === 0) {
+        if (perfSort.key !== 'gls') {
+          cmp = compareValues(a.gls, b.gls, 'desc');
+        }
+        if (cmp === 0) {
+          cmp = compareValues(a.ast, b.ast, 'desc');
+        }
+      }
+      return cmp;
+    });
+    return copy;
+  }, [seasonPlayers, perfSort]);
+
+  const togglePerfSort = (key: PerfSortKey) => {
+    setPerfSort((prev) => ({ key, dir: prev.key === key && prev.dir === 'asc' ? 'desc' : 'asc' }));
+  };
+
   const axisTick = { fill: 'var(--text-muted)', fontSize: 11 };
   const gridStroke = 'var(--border)';
 
@@ -150,9 +262,10 @@ export function SquadDashboard({ data }: { data: SquadData }) {
   const kpi = [
     { label: t('squad.kpi.weeklyBill'), value: gbp(weeklyBill, 0) },
     { label: t('squad.kpi.yearlyBill'), value: gbp(yearlyBill, 0) },
+    { label: t('squad.kpi.totalBill'), value: gbp(totalBill, 0) },
     { label: t('squad.kpi.playerCount'), value: fmt(players.length, 0) },
-    { label: t('squad.kpi.avgAge'), value: fmt(avgAge, 1) },
-  ];
+    { label: t('squad.kpi.avgAge'), value: fmt(avgAge, 2) },
+  ].filter((k) => k.value !== '—');
 
   const columns: { key: SortKey; label: string; align: 'left' | 'right' }[] = [
     { key: 'name', label: t('squad.table.name'), align: 'left' },
@@ -164,11 +277,62 @@ export function SquadDashboard({ data }: { data: SquadData }) {
     { key: 'status', label: t('squad.table.status'), align: 'left' },
   ];
 
+  const perfColumns: { key: PerfSortKey; label: string; align: 'left' | 'right'; dec?: number }[] = [
+    { key: 'player', label: t('squad.col.player'), align: 'left' },
+    { key: 'pos', label: t('squad.col.pos'), align: 'left' },
+    { key: 'age', label: t('squad.col.age'), align: 'right', dec: 0 },
+    { key: 'mp', label: t('squad.col.mp'), align: 'right', dec: 0 },
+    { key: 'starts', label: t('squad.col.starts'), align: 'right', dec: 0 },
+    { key: 'min', label: t('squad.col.min'), align: 'right', dec: 0 },
+    { key: 'gls', label: t('squad.col.gls'), align: 'right', dec: 0 },
+    { key: 'ast', label: t('squad.col.ast'), align: 'right', dec: 0 },
+    { key: 'gPlusA', label: t('squad.col.gPlusA'), align: 'right', dec: 0 },
+    { key: 'crdY', label: t('squad.col.crdY'), align: 'right', dec: 0 },
+    { key: 'crdR', label: t('squad.col.crdR'), align: 'right', dec: 0 },
+    { key: 'sh', label: t('squad.col.sh'), align: 'right', dec: 0 },
+    { key: 'sot', label: t('squad.col.sot'), align: 'right', dec: 0 },
+    { key: 'sotPct', label: t('squad.col.sotPct'), align: 'right' },
+    { key: 'gPerSh', label: t('squad.col.gPerSh'), align: 'right' },
+  ];
+
+  const renderPerfCell = (p: PlayerSeasonStats, key: PerfSortKey, dec?: number) => {
+    if (key === 'player') return p.player;
+    if (key === 'pos') {
+      const pk = posKey(p.pos);
+      return (
+        <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${posColor(pk)}`}>
+          {t(`squad.pos.${pk}`)}
+        </span>
+      );
+    }
+    const value = p[key] as number | null;
+    return fmt(value, dec ?? 2);
+  };
+
   return (
     <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-6 py-8 lg:px-10">
       <section className="flex min-w-0 flex-col gap-4">
-        <h2 className="font-display text-xl font-semibold text-primary">{t('squad.title')}</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold text-primary">{t('squad.title')}</h2>
+          {seasonKeys.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-muted">
+              <label htmlFor="squad-season">{t('squad.season')}</label>
+              <select
+                id="squad-season"
+                value={activeSeason ?? ''}
+                onChange={(e) => setSeason(e.target.value)}
+                className="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+              >
+                {seasonKeys.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {kpi.map((k) => (
             <div
               key={k.label}
@@ -262,7 +426,9 @@ export function SquadDashboard({ data }: { data: SquadData }) {
                   <td className="px-3 py-3 text-right text-sm text-secondary">{gbp(p.weeklyGross, 0)}</td>
                   <td className="px-3 py-3 text-right text-sm text-secondary">{gbp(p.yearlyGross, 0)}</td>
                   <td className="px-3 py-3 text-right text-sm text-secondary">{dash(p.expires)}</td>
-                  <td className="px-3 py-3 text-left text-sm text-secondary">{dash(p.status)}</td>
+                  <td className="px-3 py-3 text-left text-sm text-secondary">
+                    {p.status ? t(`squad.status.${p.status}`) : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -270,9 +436,88 @@ export function SquadDashboard({ data }: { data: SquadData }) {
         </div>
       </section>
 
-      <footer>
+      {seasonPlayers.length > 0 && (
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm dark:shadow-none">
+          <div className="border-b border-border px-4 py-3">
+            <h3 className="font-display text-lg font-semibold text-primary">
+              {t('squad.performance.title').replace('{season}', playerSeason)}
+            </h3>
+          </div>
+          <div className="max-h-[70vh] overflow-auto">
+            <table className="w-full min-w-[1100px] border-collapse">
+              <thead className="sticky top-0 z-10 bg-surface-elevated">
+                <tr>
+                  {perfColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      onClick={() => togglePerfSort(col.key)}
+                      className={`cursor-pointer border-b border-border px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted transition-colors hover:bg-bg-secondary ${
+                        col.align === 'left' ? 'text-left' : 'text-right'
+                      }`}
+                    >
+                      <div
+                        className={`flex items-center gap-1 ${
+                          col.align === 'right' ? 'justify-end' : 'justify-start'
+                        }`}
+                      >
+                        <span>{col.label}</span>
+                        {perfSort.key === col.key ? (
+                          perfSort.dir === 'asc' ? (
+                            <ArrowUp size={14} />
+                          ) : (
+                            <ArrowDown size={14} />
+                          )
+                        ) : (
+                          <ArrowUpDown size={14} className="opacity-30" />
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedPerfRows.map((p, idx) => (
+                  <tr
+                    key={`${p.player}-${idx}`}
+                    className="border-b border-border transition-colors hover:bg-bg-secondary"
+                  >
+                    {perfColumns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-3 py-3 text-sm ${
+                          col.align === 'left'
+                            ? 'text-left font-medium text-primary'
+                            : 'text-right text-secondary'
+                        }`}
+                      >
+                        {renderPerfCell(p, col.key, col.dec)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      <footer className="flex flex-col gap-1">
+        <p className="text-xs text-muted">{t('squad.disclaimer')}</p>
         <p className="text-xs text-muted">
-          {t('squad.dataNote')} {updated ?? '—'}
+          {t('squad.dataNote')}{' '}
+          {source ? (
+            <a
+              href={source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand hover:underline"
+            >
+              Capology
+            </a>
+          ) : (
+            'Capology'
+          )}{' '}
+          · {activeSeason ?? updated ?? '—'}
         </p>
       </footer>
     </main>

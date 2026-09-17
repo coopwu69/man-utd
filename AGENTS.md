@@ -7,6 +7,9 @@
   - `data/raw/history.json` — firecrawl markdown of fbref Stats & History page (all seasons)
   - `data/raw/matchlog-YYYY-YYYY.json` — per-season Scores & Fixtures tables, 1992-93..2025-26
   - `data/raw/understat-YYYY.json` — EPL xG per match, 2014-15+ only
+  - `data/raw/capology-YYYY-YYYY.json` — Capology salary scrapes, 2013-14..2026-27
+  - `data/man-utd-salaries.json` — parsed salary data keyed by season
+  - `data/man-utd-squad.json` — SquadData for the /squad page (multi-season, built by `scripts/parse_capology.py`; salaries are Capology estimates, not official figures)
 
 ## Refresh command
 User says "อัพเดต man utd csv" or "refresh fbref" → re-scrape changed raw files,

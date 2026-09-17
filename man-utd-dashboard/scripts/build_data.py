@@ -13,6 +13,7 @@ import csv
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -400,12 +401,140 @@ def build_keepers():
     }
 
 
+def first_table(md: str):
+    """Return (header, rows) for the first markdown table in md."""
+    for heading, header, rows in parse_tables(md):
+        return header, rows
+    return [], []
+
+
+def _norm_name(name: str) -> str:
+    return (
+        unicodedata.normalize("NFKD", name)
+        .encode("ascii", "ignore")
+        .decode()
+        .lower()
+        .strip()
+    )
+
+
+def _is_player_name(name: str) -> bool:
+    if not name:
+        return False
+    if re.search(r"\b(squad|total|opponent)\b", name, re.I):
+        return False
+    return True
+
+
+def build_players():
+    out = {"seasons": {}, "latest": ""}
+
+    for p in sorted(RAW.glob("players-*.json")):
+        m = re.match(r"^players-(\d{4}-\d{4})$", p.stem)
+        if not m:
+            continue
+        season = m.group(1)
+        raw = json.loads(p.read_text(encoding="utf-8"))
+        if raw.get("metadata", {}).get("season"):
+            season = raw["metadata"]["season"]
+        source_url = raw.get("metadata", {}).get("sourceURL")
+
+        std_header, std_rows = first_table(raw.get("markdown_standard", ""))
+        shoot_header, shoot_rows = first_table(raw.get("markdown_shooting", ""))
+        time_header, time_rows = first_table(raw.get("markdown_playingTime", ""))
+
+        if not std_header or std_header[0] != "Player":
+            print(f"WARN: no standard table for {season}", file=sys.stderr)
+            continue
+
+        std_idx = {}
+        for k, name in enumerate(std_header):
+            if name not in std_idx:
+                std_idx[name] = k
+        shoot_idx = {name: k for k, name in enumerate(shoot_header)} if shoot_header else {}
+        time_idx = {name: k for k, name in enumerate(time_header)} if time_header else {}
+
+        def cell(row, idx):
+            if row is None or idx is None or idx >= len(row):
+                return ""
+            return row[idx]
+
+        def num_int(row, idx):
+            v = num(cell(row, idx))
+            return None if v is None else int(v)
+
+        shoot_by = {}
+        for r in shoot_rows:
+            if len(r) < len(shoot_header) or not r[0].strip():
+                continue
+            shoot_by[_norm_name(strip_md(r[0]))] = r
+
+        time_by = {}
+        for r in time_rows:
+            if len(r) < len(time_header) or not r[0].strip():
+                continue
+            time_by[_norm_name(strip_md(r[0]))] = r
+
+        players = []
+        for r in std_rows:
+            if len(r) < len(std_header):
+                continue
+            name = strip_md(r[0])
+            if not _is_player_name(name):
+                continue
+            pos = strip_md(cell(r, std_idx.get("Pos")))
+            if not pos:
+                continue
+
+            age = num(cell(r, std_idx.get("Age")))
+            if age is not None:
+                age = int(age)
+
+            shoot = shoot_by.get(_norm_name(name))
+            time = time_by.get(_norm_name(name))
+
+            player = {
+                "player": name,
+                "nation": strip_md(cell(r, std_idx.get("Nation"))) or None,
+                "pos": pos,
+                "age": age,
+                "mp": num_int(r, std_idx.get("MP")),
+                "starts": num_int(r, std_idx.get("Starts")),
+                "min": num_int(r, std_idx.get("Min")),
+                "nineties": num(cell(r, std_idx.get("90s"))),
+                "gls": num_int(r, std_idx.get("Gls")),
+                "ast": num_int(r, std_idx.get("Ast")),
+                "gPlusA": num_int(r, std_idx.get("G+A")),
+                "gMinusPk": num_int(r, std_idx.get("G-PK")),
+                "pk": num_int(r, std_idx.get("PK")),
+                "pkatt": num_int(r, std_idx.get("PKatt")),
+                "crdY": num_int(r, std_idx.get("CrdY")),
+                "crdR": num_int(r, std_idx.get("CrdR")),
+                "sh": num_int(shoot, shoot_idx.get("Sh")),
+                "sot": num_int(shoot, shoot_idx.get("SoT")),
+                "sotPct": num(cell(shoot, shoot_idx.get("SoT%"))),
+                "gPerSh": num(cell(shoot, shoot_idx.get("G/Sh"))),
+                "gPerSot": num(cell(shoot, shoot_idx.get("G/SoT"))),
+                "minsPerStart": num(cell(time, time_idx.get("Mn/Start"))),
+                "ppm": num(cell(time, time_idx.get("PPM"))),
+            }
+            players.append(player)
+
+        out["seasons"][season] = {"players": players, "sourceURL": source_url}
+
+    if out["seasons"]:
+        out["latest"] = sorted(out["seasons"].keys())[-1]
+
+    return out
+
+
 def main():
     ml = matchlog_stats()
     hist = history_rows()
     xg = understat_xg()
     sota = shooting_against()
     keepers = build_keepers()
+    players = build_players()
 
     keys = set(hist) | set(ml)
     rows = []
@@ -478,6 +607,9 @@ def main():
     (ROOT / "data" / "man-utd-keepers.json").write_text(
         json.dumps(keepers, ensure_ascii=False, indent=1), encoding="utf-8")
 
+    (ROOT / "data" / "man-utd-players.json").write_text(
+        json.dumps(players, ensure_ascii=False, indent=1), encoding="utf-8")
+
     print(f"rows: {len(rows)}  seasons: {len(set(r['season'] for r in rows))}")
     print(f"keepers: matchLog={len(keepers['matchLog'])}, "
           f"perGkSeason={len(keepers['perGkSeason'])}, "
@@ -489,6 +621,14 @@ def main():
     for s in SEASONS:
         comps = [r["competition"] for r in rows if r["season"] == s and r["competition"] != "All Competitions"]
         print(s, comps)
+
+    if players.get("latest") and players["seasons"].get(players["latest"]):
+        sample = next(
+            (p for p in players["seasons"][players["latest"]]["players"] if p["player"] == "Bruno Fernandes"),
+            None,
+        )
+        if sample:
+            print(f"sample player: {sample['player']}: MP {sample['mp']}, Gls {sample['gls']}, Ast {sample['ast']}")
 
 
 if __name__ == "__main__":
