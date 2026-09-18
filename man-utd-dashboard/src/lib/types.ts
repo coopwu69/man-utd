@@ -67,6 +67,18 @@ export interface MatchlogSides {
 
 export type SeasonMatchlogs = Partial<Record<MatchlogType, MatchlogSides>>;
 
+export interface AttackSeasonRow {
+  mp: number;
+  gls: number | null;
+  sh: number | null;
+  sot: number | null;
+  pk: number | null;
+  pkatt: number | null;
+  shCoverage: number;
+}
+
+export type AttackBySeason = Record<string, AttackSeasonRow>;
+
 export interface KeeperMatchRow {
   season: string;
   date: string;

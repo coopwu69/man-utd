@@ -1,12 +1,13 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { cache } from 'react';
-import type { SeasonRow, MatchRow, KeepersData, SquadData, PlayersData } from './types';
+import type { SeasonRow, MatchRow, KeepersData, SquadData, PlayersData, AttackBySeason } from './types';
 
 const DATA_DIR = join(process.cwd(), 'data');
 const JSON_PATH = join(DATA_DIR, 'man-utd-seasons.json');
 const CSV_PATH = join(DATA_DIR, 'man-utd-seasons.csv');
 const MATCHES_PATH = join(DATA_DIR, 'man-utd-matches.json');
+const ATTACK_PATH = join(DATA_DIR, 'man-utd-attack.json');
 const KEEPERS_PATH = join(DATA_DIR, 'man-utd-keepers.json');
 const SQUAD_PATH = join(DATA_DIR, 'man-utd-squad.json');
 const PLAYERS_PATH = join(DATA_DIR, 'man-utd-players.json');
@@ -198,4 +199,10 @@ export const getPlayers = cache((): PlayersData => {
   }
   const text = readFileSync(PLAYERS_PATH, 'utf-8');
   return JSON.parse(text) as PlayersData;
+});
+
+export const getAttack = cache((): AttackBySeason => {
+  if (!existsSync(ATTACK_PATH)) return {};
+  const text = readFileSync(ATTACK_PATH, 'utf-8');
+  return JSON.parse(text) as AttackBySeason;
 });

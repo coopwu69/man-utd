@@ -8,8 +8,13 @@ import { useTheme } from './ThemeProvider';
 
 const NAV = [
   { href: '/', key: 'overview' },
+  { href: '/matches', key: 'matches' },
+  { href: '/shooting', key: 'shooting' },
   { href: '/keepers', key: 'keepers' },
+  { href: '/misc', key: 'misc' },
+  { href: '/attack', key: 'attack' },
   { href: '/squad', key: 'squad' },
+  { href: '/managers', key: 'managers' },
   { href: '/compare', key: 'compare' },
 ] as const;
 

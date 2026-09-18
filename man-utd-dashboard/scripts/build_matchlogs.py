@@ -23,6 +23,7 @@ from pathlib import Path
 
 RAW = Path(__file__).resolve().parent.parent / "data" / "raw"
 OUT = Path(__file__).resolve().parent.parent / "data" / "man-utd-matchlogs.json"
+ATTACK_OUT = Path(__file__).resolve().parent.parent / "data" / "man-utd-attack.json"
 PUBLIC_DIR = Path(__file__).resolve().parent.parent / "public" / "data"
 
 FILE_RE = re.compile(r"matchlog-(\d{4}-\d{4})-(shooting|keeper|misc)\.json")
@@ -64,6 +65,55 @@ def main():
             encoding="utf-8",
         )
     print(f"wrote {len(seasons)} per-season files -> {PUBLIC_DIR}")
+
+    attack = build_attack(seasons)
+    ATTACK_OUT.write_text(
+        json.dumps(attack, ensure_ascii=False, separators=(",", ":")),
+        encoding="utf-8",
+    )
+    print(f"wrote attack aggregates -> {ATTACK_OUT}")
+
+
+def num(s):
+    try:
+        return float(s)
+    except (TypeError, ValueError):
+        return None
+
+
+def build_attack(seasons):
+    """Per-season attacking aggregates from the shooting 'for' tables."""
+    out = {}
+    for season, types in seasons.items():
+        t = types.get("shooting", {}).get("for")
+        if not t:
+            continue
+        ix = {}
+        for i, c in enumerate(t["columns"]):
+            ix.setdefault(c, i)  # first occurrence wins (dup headers like GA)
+        mp = len(t["rows"])
+
+        def col(name):
+            i = ix.get(name)
+            return [num(r[i]) if i is not None and i < len(r) else None
+                    for r in t["rows"]]
+
+        def s(vals):
+            vals = [v for v in vals if v is not None]
+            return round(sum(vals), 2) if vals else None
+
+        sh = col("Sh")
+        cov = sum(1 for v in sh if v is not None) / mp if mp else 0
+        out[season] = {
+            "mp": mp,
+            "gls": s(col("Gls")),
+            "sh": s(sh),
+            "sot": s(col("SoT")),
+            "pk": s(col("PK")),
+            "pkatt": s(col("PKatt")),
+            "shCoverage": round(cov, 2),
+        }
+    return out
 
 
 if __name__ == "__main__":

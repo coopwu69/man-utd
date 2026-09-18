@@ -117,9 +117,33 @@
   },
   "nav": {
     "overview": "Overview",
+    "matches": "Scores & Fixtures",
+    "shooting": "Shooting",
     "keepers": "Keepers",
+    "misc": "Miscellaneous",
+    "attack": "Attack",
     "squad": "Squad",
+    "managers": "Managers",
     "compare": "Compare"
+  },
+  "attack": {
+    "title": "Attack analytics",
+    "note": "Shots/on-target from fbref matchlogs — shot data exists from 2016-17 onward (older seasons have no shot data on fbref)",
+    "kpi": {
+      "gfPerMp": "Goals / MP",
+      "shPerMp": "Shots / MP",
+      "sotPct": "On target %",
+      "gPerSh": "Goals / shot"
+    },
+    "chart": {
+      "goals": "Goals and xG per match",
+      "shots": "Shots and accuracy per match"
+    },
+    "table": {
+      "title": "Per-season attack stats",
+      "season": "Season",
+      "topScorer": "Top scorer"
+    }
   },
   "keepers": {
     "title": "Goalkeeping",
