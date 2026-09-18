@@ -52,6 +52,9 @@ re-run `python -X utf8 scripts/build_data.py` in `man-utd-dashboard/`, then copy
 - `data/man-utd-keepers.json` — built: matchLog + perGkSeason + psxg + psxgPerGk
 - `data/man-utd-squad.json` — HAND-MAINTAINED wages/contracts (from user's sheet). Edit JSON, don't regenerate.
 - `data/man-utd-psxg-legacy.json` — PSxG seed from old Google Sheet. goalsPrevented = psxg - (ga - pka), verified 9/9 vs their chart.
+- `data/raw/players-YYYY.json` — squad page player stats (standard+shooting+playingTime+misc tables);
+  NO xG columns — fbref removed them along with PSxG. Counting stats only.
+- `data/man-utd-players.json` — built: {seasons:{season:{players,sourceURL}},latest}
 - New pages: /keepers /squad /compare (+ /managers from parallel session)
 
 ## fbref removed PSxG site-wide
